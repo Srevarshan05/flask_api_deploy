@@ -19,7 +19,9 @@ app = Flask(__name__)
 
 # Initialize Groq client with environment variable
 try:
-    client = Groq(api_key=os.getenv('GROQ_API_KEY', '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'))
+    client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+    if not client.api_key:
+        raise ValueError("GROQ_API_KEY environment variable not set")
     logging.info("Groq client initialized successfully")
 except Exception as e:
     logging.error(f"Failed to initialize Groq client: {str(e)}")
@@ -30,6 +32,11 @@ image_path = None
 csv_path = 'data.csv'
 log_csv_path = 'refined_text_log.csv'
 intake_log_path = 'intake_log.json'
+
+# Flask setup
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Database setup for ingredients
 def init_db():
@@ -128,11 +135,6 @@ def process_image_and_csv(image_path, csv_path):
     except Exception as e:
         logging.error(f"Error in process_image_and_csv: {str(e)}")
         return f"Error occurred: {str(e)}", "", ""
-
-# Flask setup
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 @app.route('/upload_nutritional', methods=['POST'])
 def upload_nutritional():
@@ -412,10 +414,7 @@ def meal_plan():
         logging.error(f"Meal plan error: {str(e)}")
         return jsonify({"error": f"Failed to generate meal plan: {str(e)}"}), 500
 
-# Initialize and run for Hugging Face Spaces
-if __name__ == "__main__":
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    init_db()  # Initialize ingredients database
-    logging.info(f"Upload folder created/verified: {UPLOAD_FOLDER}")
-    port = int(os.getenv("PORT", 7860))  # Default to 7860 for Hugging Face
-    app.run(host="0.0.0.0", port=port)
+# Initialize app on startup
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+init_db()  # Initialize ingredients database
+logging.info(f"Upload folder created/verified: {UPLOAD_FOLDER}")
