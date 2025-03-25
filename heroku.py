@@ -412,7 +412,8 @@ def meal_plan():
         logging.error(f"Meal plan error: {str(e)}")
         return jsonify({"error": f"Failed to generate meal plan: {str(e)}"}), 500
 
-# Initialize app on startup
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-init_db()  # Initialize ingredients database
-logging.info(f"Upload folder created/verified: {UPLOAD_FOLDER}")
+if __name__ == "__main__":
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    init_db()  # Initialize ingredients database
+    logging.info(f"Upload folder created/verified: {UPLOAD_FOLDER}")
+    app.run(host='0.0.0.0', port=8000)  # PythonAnywhere free tier uses port 8000
